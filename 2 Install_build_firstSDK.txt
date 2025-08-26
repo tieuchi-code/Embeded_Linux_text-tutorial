@@ -1,0 +1,7 @@
+Cài đặt Texas Instrument SDK manager để build Linux
+https://software-dl.ti.com/processor-sdk-linux/esd/AM335X/09_03_05_02/exports/docs/linux/Overview/Download_and_Install_the_SDK.html
+
+Follow Linux host build u-boot, dtb, ...
+https://software-dl.ti.com/processor-sdk-linux/esd/AM335X/09_03_05_02/exports/docs/linux/Overview/Top_Level_Makefile.html
+
+Vào link này làm theo hướng dẫn để cài và build SDK 

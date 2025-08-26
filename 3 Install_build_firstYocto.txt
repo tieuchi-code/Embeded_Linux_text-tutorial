@@ -1,0 +1,43 @@
+Instruction (recommend)
+===========================================================================
+sudo apt-get update
+sudo apt-get -f -y install \
+  git build-essential diffstat texinfo gawk chrpath socat doxygen \
+  dos2unix python3 bison flex libssl-dev u-boot-tools mono-devel \
+  mono-complete curl python3-distutils repo pseudo python3-sphinx \
+  g++-multilib libc6-dev-i386 jq git-lfs pigz zstd liblz4-tool \
+  cpio file lz4 debianutils iputils-ping python3-git python3-jinja2 \
+  python3-subunit locales libacl1 unzip gcc python3-pip python3-pexpect \
+  xz-utils wget \
+
+sudo locale-gen en_US.UTF-8
+sudo dpkg-reconfigure dash
+
+
+git clone https://git.ti.com/git/arago-project/oe-layersetup.git tisdk
+cd tisdk
+./oe-layertool-setup.sh -f configs/processor-sdk/processor-sdk-09.01.00-legacy-config.txt
+cd build
+. conf/setenv
+MACHINE=am335x-evm bitbake -k tisdk-base-image
+============================================================================
+
+use AI for more help
+
+or follow step in the link from TI
+
+https://software-dl.ti.com/processor-sdk-linux/esd/AM335X/09_03_05_02/exports/docs/linux/Overview_Building_the_SDK.html
+
+*NOTE:
+-The link will give another version, and will recommend to install the full (default) version. But you should use base install (as instruction) 
+
+-The firsttime build will take a very long time (many hours), this is normal
+-There will be a lots warning, this is normal too
+
+Recommend using AI for help
+
+
+
+
+
+
