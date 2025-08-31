@@ -1,0 +1,689 @@
+Access the link to read information about booting Image through Ethernet and TFTP
+https://software-dl.ti.com/processor-sdk-linux/esd/AM335X/08_02_00_24/exports/docs/linux/Overview/Run_Setup_Scripts.html
+
+Using TFTP and NFS to boot image to BBB board
+
+TFTP: used to transfer the kernel image
+NFS: used to provide the root filesystem
+
+Using file setup.sh
+	cd ti-processor-sdk-linux-am335x-evm-09.03.05.02 -> setup.sh
+The setup script will automatically configure the environment for you.
+(minicom, telnet, TFTP, NFS...)
+--------------------------------------------
+
+As the link suggest, there are 2 ways:
+	PC <-> BBB (ethernet)
+*The PC and the BBB must be assigned static IP addresses
+
+	PC <-> router <-> BBB (ethernet)
+*The router will act as a DHCP server and automatically assign dynamic IP addresses to both the PC and the BBB.
+--------------------------------------------
+
+You will need:
+USB Mini cable (included with BBBlack)
+FTDI serial caple ( USB UART)
+--------------------------------------------
+
+Run setup.sh
+
+cd ti-processor-sdk-linux-am335x-evm-09.03.05.02
+-> sudo ./setup.sh -> password
+..............................................
+
+Are you running this script using sudo? The detected username is 'root'.
+Verify and enter your Linux username below
+[ root ] 
+-> enter
+...............................................
+
+User 'root' is already apart of the 'dialout' group
+Do you wish to install required host packages (Press (Y) to run, (n) to skip)? 
+-> y -> enter
+(**detecting you are running with root permission, so yes)
+...............................................
+
+Do you wish to run nfs setup (Press (Y) to run, (n) to skip) ?
+->y -> enter
+................................................
+
+In which directory do you want to install the target filesystem?(if this directory does not exist it will be created)
+[ /home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/targetNFS ] 
+-> enter 
+(**use default directory)
+.................................................
+
+Note! This command requires you to have administrator priviliges (sudo access) 
+on your host.
+Press return to continue
+-> enter
+.................................................
+
+/home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/targetNFS already exists
+(r) rename existing filesystem (o) overwrite existing filesystem (s) skip filesystem extraction
+[r] 
+(**this note mean file already exist, you can overwrite or rename, this will not appear in the first time you run setup.sh, no problem)
+..................................................
+
+This step will set up the SDK to install binaries in to:
+    /home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/targetNFS/home/root/am335x-evm
+
+The files will be available from /home/root/am335x-evm on the target.
+
+This setting can be changed later by editing Rules.make and changing the
+EXEC_DIR or DESTDIR variable (depending on your SDK).
+
+Press return to continue
+-> enter
+..................................................
+
+This step will export your target filesystem for NFS access.
+
+Note! This command requires you to have administrator priviliges (sudo access) 
+on your host.
+Press return to continue
+-> enter
+..................................................
+
+Stopping nfs-kernel-server (via systemctl): nfs-kernel-server.service.
+Starting nfs-kernel-server (via systemctl): nfs-kernel-server.service.
+--------------------------------------------------------------------------------
+Do you wish to run tftp setup (Press (Y) to run, (n) to skip) ? 
+-> y -> enter
+..................................................
+
+Which directory do you want to be your tftp root directory?(if this directory does not exist it will be created for you)
+[ /tftpboot ] 
+-> enter
+..................................................
+
+This step will set up the tftp server in the /tftpboot directory.
+
+Note! This command requires you to have administrator priviliges (sudo access) 
+on your host.
+Press return to continue
+...................................................
+
+This step will set up the tftp server in the /tftpboot directory.
+
+Note! This command requires you to have administrator priviliges (sudo access) 
+on your host.
+Press return to continue
+
+/tftpboot already exists, not creating..
+
+/tftpboot/*Image-am335x-evm.bin already exists. The existing installed file can be renamed and saved under the new name.
+(r) rename (o) overwrite (s) skip copy 
+[r] 
+(** again, this will not appear at the first time, it's ok
+But if this note appear, there will be a lot of question, you can skip all, or overwrite all, and repeat many tìm, just press fast, not to worry
+Or you can skip )
+..................................................
+Restarting tftp server
+Stopping xinetd (via systemctl): xinetd.service.
+Starting xinetd (via systemctl): xinetd.service.
+Do you wish to run minicom setup (Press (Y) to run, (n) to skip) ? 
+-> y -> enter
+.....................................................
+
+This step will set up minicom (serial communication application) for
+SDK development
+For boards that contain a USB-to-Serial converter on the board such as:
+	* BeagleBone
+	* Beaglebone Black
+	* AM335x EVM-SK
+	* AM57xx EVM
+	* K2H, K2L, and K2E EVMs
+the port used for minicom will be automatically detected. By default Ubuntu
+will not recognize this device. Setup will add a udev rule to
+/etc/udev/ so that from now on it will be recognized as soon as the board is
+plugged in.
+For other boards, the serial will defualt to /dev/ttyS0. Please update based
+on your setup.
+
+NOTE: If your using any of the above boards simply hit enter
+and the correct port will be determined automatically at a
+later step.  For all other boards select the serial port
+that the board is connected to.
+Which serial port do you want to use with minicom?
+[ /dev/ttyS0 ] 
+(**we are using ubuntu, so it's not ttyS0, we use ttyUSB0)
+-> /dev/ttyUSB0
+.........................................................
+
+Configuration saved to /root/.minirc.dfl. You can change it further from inside
+minicom, see the Software Development Guide for more information.
+
+Do you wish to run uboot setup (Press (Y) to run, (n) to skip) ? 
+-> y -> enter
+..........................................................
+
+This step will set up the U-Boot variables for booting the EVM.
+Autodetected the following ip address of your host, correct it if necessary
+ (**at this step, u-boot connect to your host (ethernet), we don't use router, so we have to config static IP)
+ 
+->Open another Terminal tabs
+-> ifconfig
+............................................................
+ifconfig
+enp4s0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        ether d8:43:ae:09:7c:da  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 8451  bytes 723046 (723.0 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 8451  bytes 723046 (723.0 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+wlo1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.123.45  netmask 255.255.255.0  broadcast 192.168.123.255
+        inet6 2403:e200:115:497e:ffe4:f55:fae1:b06a  prefixlen 64  scopeid 0x0<global>
+        inet6 2403:e200:115:497e:9c97:ba61:5866:6bb8  prefixlen 64  scopeid 0x0<global>
+        inet6 fe80::1643:1458:3eee:63bd  prefixlen 64  scopeid 0x20<link>
+        ether 04:ec:d8:65:d6:f5  txqueuelen 1000  (Ethernet)
+        RX packets 184676  bytes 185952991 (185.9 MB)
+.............................................................
+
+(**So we can see that our ehternet host is enp4s0, and it haven't had IP yet
+-> sudo ifconfig enp4s0 192.168.8.9
+(**The IP is you choose, don't need to be exactly)
+...............................................................
+
+ifconfig again and check
+ifconfig
+enp4s0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        inet 192.168.8.9  netmask 255.255.255.0  broadcast 192.168.8.255
+        ether d8:43:ae:09:7c:da  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+..............................................................
+
+Now back to the setup.sh terminal
+
+This step will set up the U-Boot variables for booting the EVM.
+Autodetected the following ip address of your host, correct it if necessary
+-> 192.268.8.9
+(your IP)
+...........................................................
+
+Select Linux kernel location:
+ 1: TFTP
+ 2: SD card
+
+[ 1 ] 
+-> enter
+(use TFTP to boot via ethernet)
+.................................................
+
+Select root file system location:
+ 1: NFS
+ 2: SD card
+
+[ 1 ] 
+-> enter
+.................................................
+
+Which kernel image do you want to boot from TFTP?
+[ zImage-am335x-evm.bin ] 
+-> enter
+.................................................
+
+Would you like to create a minicom script with the above parameters (y/n)?
+[ y ] 
+-> enter
+.................................................
+
+Successfully wrote /home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/bin/setupBoard.minicom
+
+No BeagleBone (Black) or StarterKit detected. Assuming
+general purpose evm is being used. Is this correct?
+(y/n) 
+
+(I haven't connect the BBB board, so we're done here)
+...................................................
+
+After successfully executing this script, your board will be set up. You will be 
+able to connect to it by executing 'minicom -w' or if you prefer a windows host
+you can set up Tera Term as explained in the Software Developer's Guide.
+If you connect minicom or Tera Term and power cycle the board Linux will boot.
+
+[ y ] 
+-> enter
+.....................................................
+
+No BeagleBone (Black) or StarterKit detected. Assuming
+general purpose evm is being used. Is this correct?
+(y/n) 
+
+TIsdk require us to use TFTP cable, but i'm using USB UART cp2102
+-> we have to change the script
+-> search for keyword "No BeagleBone"
+
+grep -r 'No BeagleBone' ./bin/
+
+./bin/setup-uboot-env.sh:		echo "No BeagleBone (Black) or StarterKit detected. Assuming"
+
+-> the script is in the file "./bin/setup-uboot-env.sh"
+....................................................
+
+vim ./bin/setup-uboot-env.sh
+
+/No BeagleBone
+
+-> search for this
+
+echo ""
+echo "No BeagleBone (Black) or StarterKit detected. Assuming"
+echo "general purpose evm is being used. Is this correct?"
+read -p "(y/n) " validevm
+echo ""
+
+(This is in the check_for_beaglebone function)
+
+->search for 'check_for_beaglebone'
+
+# First check if there is a rev A3 board which uses the custom VID/PID
+
+    # Now let's check for BeagleBone Black
+    sudo lsusb -vv -d 0403:6001 > /dev/null
+
+    if [ "$?" = "0" ]
+    then
+        isBB="y"
+        isBBBlack="y"
+        return
+     fi
+
+-> the script will detect VID/PID for TFTP
+-> we will change the VID/PID IP
+................................................
+
+Open new terminal
+
+tieuchi@tieuchi:~$ lsusb
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 007: ID 1c4f:0002 SiGma Micro Keyboard TRACER Gamma Ivory
+Bus 001 Device 003: ID 5986:211b Acer, Inc HD Webcam
+Bus 001 Device 002: ID 3151:3020 YICHIP Wireless Device
+Bus 001 Device 008: ID 10c4:ea60 Silicon Labs CP210x UART Bridge
+Bus 001 Device 005: ID 8087:0026 Intel Corp. AX201 Bluetooth
+Bus 001 Device 006: ID 1d6b:0104 Linux Foundation Multifunction Composite Gadget
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+
+-> the cp2102 has VID/PID:  10c4:ea60
+..................................................
+
+Back to check_for_beaglebone
+
+    # Now let's check for BeagleBone Black
+    # sudo lsusb -vv -d 0403:6001 > /dev/null
+      sudo lsusb -vv -d 10c4:ea60 > /dev/null
+      
+(**comment # sudo lsusb -vv -d 0403:6001 > /dev/null, add new)
+.................................................
+
+run setup.sh again
+
+Successfully wrote /home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/bin/setupBoard.minicom
+
+A BeagleBone (Black) or StarterKit board has been detected
+Do you want to configure U-Boot for one of the boards mentioned
+above? An answer of 'n' will configure U-Boot for the
+General Purpose EVM instead
+(y/n) 
+
+-> y -> enter
+
+(now it's detected)
+....................................................
+
+Detecting connection to board...
+
+Unable to detect which port the board is connected to.
+Please reconnect your board.
+Press 'y' to attempt to detect your board again or press 'n' to continue...
+(y/n)
+
+(**now we search for error)
+
+~/ti-processor-sdk-linux-am335x-evm-09.03.05.02$ 
+grep -r 'Unable to detect which port the board is connected to.' bin/
+
+bin/common.sh:			echo "Unable to detect which port the board is connected to."
+bin/setup-uboot-env.sh:		    echo "Unable to detect which port the board is connected to."
+
+(**it can be somewhere in bin/common.sh or bin/setup-uboot-env.sh)
+
+-> I'll search in bin/setup-uboot-env.sh
+....................................................
+
+sudo vim bin/setup-uboot-env.sh
+
+/Unable to detect which port the board is connected to.
+................................................
+    while [ yes ]
+    do
+            echo "Detecting connection to board..."
+            loopCount=0
+            port=`dmesg | grep FTDI | grep "tty" | tail -1 | grep "attached" |  awk '{ print $NF }'`
+            while [ -z "$port" ] && [ "$loopCount" -ne "10" ]
+            do
+                    #count to 10 and timeout if no connection is found
+                    loopCount=$((loopCount+1))
+
+                    sleep 1
+                    port=`dmesg  | grep FTDI | grep "tty" | tail -1 | grep "attached" |  awk '{ print $NF }'`
+            done
+(the sctipt will automatically search for USB)
+.................................................
+
+we will change the name "FTDI" by "cp210x"
+....................................................
+
+run setup.sh again
+
+press and hold space key
+
+turn on/reset the board
+
+the log will stop at
+"Press SPACE to abort autoboot in 0 seconds"
+....................................................
+
+we have to change script for setup in bin/setupBoard.minicom
+/ti-processor-sdk-linux-am335x-evm-09.03.05.02/bin$ ls
+add-to-group.sh     setup-host-check.sh       setup-tftp.sh
+common.sh           setup-minicom.sh          setup-uboot-env.sh
+create-sdcard.sh    setup-package-install.sh
+setupBoard.minicom  setup-targetfs-nfs.sh
+.....................................................
+
+sudo vim setupBoard.minicom
+
+timeout 300
+verbose on
+expect {
+    "stop autoboot:"
+}
+send " "
+
+(**first it will wait 300 second for board reset
+	after reset, expect for "stop autoboot:", then send " "
+	-> replace "stop autoboot:" with "Press SPACE to abort autoboot in 0 seconds")
+.....................................................
+
+send "env default -f -a"
+
+expect {
+    "=>"
+}
+send "saveenv"
+
+expect {
+    "=>"
+}
+send "reset"
+
+expect {
+    "stop autoboot:"
+}
+send " "
+
+expect {
+    "=>"
+}
+
+(**we don't use SD card now -> delete paragraph above )
+.......................................................
+
+send "setenv ip_method dhcp"
+
+expect {
+    "=>"
+}
+(**the dhcp method is used if we use the router, in this case we will delete this)
+........................................................
+
+send "setenv ipaddr 192.168.8.x"
+
+expect {
+    "=>"
+}
+
+(set stactic IP for BBB, x can be any number from 2->255, BUT NOT same to serverip, first xxx.xxx.x. must same to serverip)
+(add paragraph below setenv severip 192.168.8.9)
+..........................................................
+
+send "setenv gatewayip 192.168.8.1"
+
+expect {
+    "=>"
+}
+
+(** gateway ip first xxx.xxx.x. must be same to serverip, last number must be 1)
+..........................................................
+
+send "setenv netmask 255.255.255.0"
+
+expect {
+    "=>"
+}
+
+(**set netmask must be 255.255.255.0)
+..........................................................
+
+send setenv bootcmd 'run findfdt; run init_console; setenv autoload no;tftp ${loadaddr} zImage-am335x-evm.bin; tftp ${fdtaddr} ${fdtfile}; run netargs; bootz ${loadaddr} - ${fdtaddr}'
+
+(**in this line delete dhcp)
+
+->	send setenv bootcmd 'run findfdt; run init_console; setenv autoload no;tftp ${loadaddr} zImage-am335x-evm.bin; tftp ${fdtaddr} ${fdtfile}; run netargs; bootz ${loadaddr} - ${fdtaddr}'
+
+-> delete saveevn below
+send "saveenv"
+
+expect {
+    "=>"
+}
+...........................................................
+
+now setup for BBB
+
+sudo minicom -D /dev/ttyUSB0 -S setupBoard.minicom 
+
+->press and hold space key
+->reset BBB board
+...........................................................
+this will be the log of success
+
+Press SPACE to abort autoboot in 0 seconds                                                                                      
+=>setenv serverip 192.168.8.9                                                                                                   
+=>setenv ipaddr 192.168.8.8                                                                                                     
+=> setenv gatewayip 192.168.8.1                                                                                                 
+=>setenv netmask 255.255.255.0                                                                                                  
+=>setenv rootpath '/home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/targetNFS'                                       
+=>setenv bootfile zImage-am335x-evm.bin                                                                                         
+=>setenv nfsopts 'nolock,v3,tcp,rsize=4096,wsize=4096'                                                                          
+=>setenv bootcmd 'run findfdt; run init_console; setenv autoload no;tftp ${loadaddr} zImage-am335x-evm.bin; tftp ${fdtaddr} ${f'
+=>boot                                                                                                                          
+board_name=[A335BNLT] ...                                                                                                       
+board_rev=[00C0] ...                                                                                                            
+link up on port 0, speed 100, full duplex                                                                                       
+Using cpsw device                                                                                                               
+TFTP from server 192.168.8.9; our IP address is 192.168.8.8                                                                     
+Filename 'zImage-am335x-evm.bin'.                                                                                               
+Load address: 0x82000000                                                                                                        
+Loading: #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #################################################################                                                      
+         #########                                                                                                              
+         4.7 MiB/s                                                                                                              
+done                                                                                                                            
+Bytes transferred = 7696896 (757200 hex)                                                                                        
+link up on port 0, speed 100, full duplex                                                                                       
+Using cpsw device                                                                                                               
+TFTP from server 192.168.8.9; our IP address is 192.168.8.8                                                                     
+Filename 'am335x-boneblack.dtb'.                                                                                                
+Load address: 0x88000000                                                                                                        
+Loading: ####################                                                                                                   
+         2.9 MiB/s                                                                                                              
+done                                                                                                                            
+Bytes transferred = 98157 (17f6d hex)                                                                                           
+## Flattened Device Tree blob at 88000000                                                                                       
+   Booting using the fdt blob at 0x88000000                                                                                     
+   Loading Device Tree to 8ffe5000, end 8fffff6c ... OK                                                                         
+                                                                                                                                
+Starting kernel ...                                                                                                             
+                                                                                                                                
+[    0.000000] Booting Linux on physical CPU 0x0                                                                                
+[    0.000000] Linux version 6.1.119-ti-gc490f4c0fe51 (oe-user@oe-host) (arm-oe-linux-gnueabi-gcc (GCC) 11.5.0, GNU ld (GNU Bin4
+[    0.000000] CPU: ARMv7 Processor [413fc082] revision 2 (ARMv7), cr=10c5387d                                                  
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, VIPT aliasing instruction cache                                         
+[    0.000000] OF: fdt: Machine model: TI AM335x BeagleBone Black                                                               
+[    0.000000] Memory policy: Data cache writeback                                                                              
+[    0.000000] efi: UEFI not found.                                                                                             
+[    0.000000] cma: Reserved 64 MiB at 0x9b800000                                                                               
+[    0.000000] Zone ranges:                                                                                                     
+[    0.000000]   Normal   [mem 0x
+...
+
+.....................................................................
+
+In the log we can see
+[    0.000000] Linux version 6.1.119-ti-gc490f4c0fe51 
+This mean the BBB is running version form host
+.........................................................
+
+However, it's still stuck at
+
+[  246.494206] cpsw-switch 4a100000.switch eth0: Link is Up - 100Mbps/Full - flow control off             
+
+-> not completely running our version
+..........................................................
+
+Find in the log
+
+Kernel command line: console=ttyO0,115200n8 root=/dev/nfs nfsroot=192.168.8.9:/home/tieuchi/ti-processor-sdk-linp
+
+we having wrong netarg
+...........................................................
+
+go to setupBoard.minicom
+send setenv bootcmd 'run findfdt; run init_console; setenv autoload no;tftp ${loadaddr} zImage-am335x-evm.bin; tftp ${fdtaddr} ${fdtfile}; run netargs; bootz ${loadaddr} - ${fdtaddr}'
+-> delete "run netargs;"
+..........................................................
+
+add thís below setenv bootfile
+
+send "setenv bootargs 'console=ttyO0,115200n8 root=/dev/nfs nfsroot=192.168.8.9:/home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/targetNFS,nolock,v3,tcp,rsize=4096,wsize=4096 rw ip=192.168.8.8:192.168.8.9:192.168.8.1:255.255.255.0::eth0'"
+
+expect {
+    "=>"
+}
+.............................................................
+
+This log mean you're completely success
+  OK  ] Finished User Runtime Directory /run/user/1000.
+         Starting User Manager for UID 1000...
+
+ _____                    _____           _         _   
+|  _  |___ ___ ___ ___   |  _  |___ ___  |_|___ ___| |_ 
+|     |  _| .'| . | . |  |   __|  _| . | | | -_|  _|  _|
+|__|__|_| |__,|_  |___|  |__|  |_| |___|_| |___|___|_|  
+              |___|                    |___|            
+
+Arago Project am335x-evm -
+
+Arago 2023.10 am335x-evm -
+
+am335x-evm login: ***************************************************************
+***************************************************************
+NOTICE: This file system contains the following GPL-3.0 packages:
+
+NOTE: If the package is a dependency of another package you
+      will be notified of the dependent packages.  You should
+      use the --force-removal-of-dependent-packages option to
+      also remove the dependent packages as well
+***************************************************************
+***************************************************************
+
+.......................................................
+
+CONGRATULATION
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
