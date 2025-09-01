@@ -1,0 +1,84 @@
+When we want to run any C program, we have to compile it from file.c to file.o
+
+Ex: gcc -c main.c -o main.o
+	-c: compile, not link (recommend in large project)
+	-o: output
+
+In case we need to compile many file, and need it to be automatically, we need makefile
+
+Makefile structure
+first, create Makefile (must be exactly name "Makefile") in the project
+
+<variable> = <....>
+<target>: <dependencies>
+	<command>
+---------------------------------------------------------
+Ex: We have hi.c hello.c and we need to compile and link this 2 files to program.exe
+
+cd project
+vim Makefile
+
+CC=gcc
+program: hi.c hello.c
+	gcc -c main.c -o main.o
+	$(CC) -c hello.c -o hello.o
+	gcc hi.o hello.o -o program
+	($(CC) *.o -o program) -> link all file.o
+	
+(CC or gcc is ok, but $(CC) is more convenient, you can change CC = another compiler )
+-----------------------------------------------------------
+
+make        # build file program
+./program   # run
+----------------------------------------------------------
+
+CC=gcc
+program: hi.c hello.c
+	gcc -c hi.c -o main.o
+	$(CC) -c hello.c -o hello.o
+	gcc hi.o hello.o -o program
+	($(CC) *.o -o program) -> link all file.o
+	
+we can run this Makefile, but every time we make again, it will compile all file again 
+
+tieuchi@tieuchi:~$ make
+gcc -c hi.c -o hi.o
+gcc -c hello.c -o hello.o
+gcc *.o -o program
+
+In a large project with thousands of program, compiler all again if we only change very small file is wasting
+-> we need another solution
+
+<target>: <dependencies>
+
+program: hi.o hello.o
+	gcc *.o -o program
+	
+hi.o: hi.c
+	gcc -c hi.c -o hi.o
+	
+hello.o: hello.c
+	gcc -c hello.c -o hello.o
+------------------------------------------------------------------
+
+To clean all file.o or file target, add this
+
+clean:
+	rm -f *.o <target>
+
+(-f: force, not ask)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
