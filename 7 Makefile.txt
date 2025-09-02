@@ -67,6 +67,114 @@ clean:
 	rm -f *.o <target>
 
 (-f: force, not ask)
+----------------------------------------------------------------
+
+$@ :name of target
+$^ :name of dependencies
+
+Ex: 
+program: hi.o hello.o
+	gcc *.o -o program
+->program: hi.o hello.o
+	$(CC) -c $^ -o $@
+---------------------------------------------------------------
+
+SRCS = $(wildcard *.c)
+-> variable SRCS will expand to all file.c
+
+Ex: hi.c hello.c
+SRCS = $(wildcard *.c)
+-> SRCS= hi.c hello.c
+--------------------------------------------------------------
+
+OBJS = $(SRCS:.c=.o)
+change all file.c in SRCS to file.o in OBJS
+
+Ex: we have hi.c hello.c
+SCRS= $(wildcard *.c) -> SRCS=hi.c hello.c
+OBJS = $(SRCS:.c=.o)
+->OBJS= hi.o hello.o
+---------------------------------------------------------------
+
+$(info ...)
+->print log
+---------------------------------
+
+% :pattern- compile file with same name
+
+Ex: hi.c -> hi.o
+	hello.c -> hello.o
+
+%.o : %.c
+---------------------------------
+CC=gcc
+TARGET=calculate
+SRCS = $(wildcard *.c)
+OBJS = $(SRCS:.c=.o)
+
+$(TARGET): $(OBJS)
+        $(CC) $^ -o $@
+
+%.o: %.c
+        $(CC) -c $^ -o $@ 
+debug:
+        $(info all source: $(SRCS))
+        $(info all objects: $(OBJS))
+        $(info target: $(TARGET))       
+clean:
+        rm -f *.o $(TARGET) 
+---------------------------------------------------------------------
+$^ :all dependence
+$< :only first dependence
+------------------------------------------------
+
+until now, we can compile all file.c -> file.o
+But we still have file.h in project
+
+we have command to compile file that depence to file.c
+Ex: gcc -c main.c -o main.o -MMD
+
+->main.d
+
+DEP = -MMD
+
+-include *.d
+----------------------------------------------------
+CC=gcc
+TARGET=calculate
+SRCS = $(wildcard *.c)
+OBJS = $(SRCS:.c=.o)
+DEP = -MMD
+$(TARGET): $(OBJS)
+        $(CC) $^ -o $@
+
+%.o: %.c
+        $(CC) -c $(DEP) $< -o $@ 
+debug:
+        $(info all source: $(SRCS))
+        $(info all objects: $(OBJS))
+        $(info target: $(TARGET))       
+clean:
+        rm -f *.o $(TARGET)
+
+-include $(DEP)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
