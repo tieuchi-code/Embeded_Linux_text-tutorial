@@ -1,0 +1,56 @@
+when you compile a C program on computer, C compiler (cc) will compile to binary file for intel x86 chip, but when you want to run C program on ARM chip, you can NOT use CC, you need cross compiler
+Cross compiler will help to compile program on your host, but run in ARM or other chip
+
+In this case, we will compile C program on host, but run in BeagleBone black
+-----------------------------------------------------
+
+file.sh is script shell, when you run this script, the shell will run command in the script
+
+in ti-sdk provide cc for arm
+
+ti-sdk -> linux-devkit -> enviroment setup arm 
+
+export CC="arm-oe-linux-gnueabi-gcc  -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard --sysroot=$SDKTARGETSYSROOT"
+export CXX="arm-oe-linux-gnueabi-g++  -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard --sysroot=$SDKTARGETSYSROOT"
+export CPP="arm-oe-linux-gnueabi-gcc -E  -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard --sysroot=$SDKTARGETSYSROOT"
+-----------------------------------------------------
+
+this is compiler for ARM
+
+export CC="arm-oe-linux-gnueabi-gcc  -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard --sysroot=$SDKTARGETSYSROOT"
+
+now we have to source for shell to understand export variable in this script
+
+source <PATH>
+
+Ex: source /ti-processor-sdk-linux-am335x-evm-09.03.05.02/linux-devkit/environment-setup-armv7at2hf-neon-oe-linux-gnueabi 
+
+now if you echo CC -> 
+
+echo $CC
+arm-oe-linux-gnueabi-gcc -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard --sysroot=/home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/linux-devkit/sysroots/armv7at2hf-neon-oe-linux-gnueabi
+----------------------------------------------------
+
+now you make again -> compile main.c for ARM
+
+make
+arm-oe-linux-gnueabi-gcc  -march=armv7-a -mthumb -mfpu=neon -mfloat-abi=hard --sysroot=/home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/linux-devkit/sysroots/armv7at2hf-neon-oe-linux-gnueabi main.c -o LED_control
+------------------------------------------------------
+
+now this program is compiled for ARM you can copy it to BBB or ARM chip to run program
+
+Ex: scp LED_control root@192.168.8.8:/home/root
+
+
+
+
+
+
+
+
+
+
+
+
+
+
