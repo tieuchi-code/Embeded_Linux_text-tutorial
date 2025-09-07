@@ -1,0 +1,97 @@
+In this instruction we wil blink the default LED on the BBB using userspace application (not driver)
+Frist boot your image (default tisdk image) to the board
+-> Login -> cd sys/class/leds
+
+the systems is using led0, led1, so we have user led 2,led 3
+-> cd beaglebone:green:usr2 -> file brightness
+
+/sys/class/leds/beaglebone:green:usr2 
+
+-> cat brightness (read what is in file brightness)
+cat brightness           
+1                                                       
+-> 1 in file brightness -> led on
+
+echo 0 >brightness
+
+-> overwrite 0 to file brightness -> led off
+
+1 -> led on
+0 -> led off
+----------------------------------------------------------------------------
+
+Now we will write an application on userspace to control led
+
+cd /home/root
+vi main.c    (in BBB not have vim -> we use vi)
+-----------------------------------------------------
+#include <stdio.h>
+
+void main()
+{
+        printf("start program\n");
+        FILE* fp;
+        fp = fopen("/sys/class/leds/beaglebone:green:usr2/brightness","w");
+        if(fp == 0)
+        {
+                printf("File open failed");
+                return;
+        }
+        fputs("1",fp);
+        fclose(fp);
+}
+(** write 0/1 to off/on LED)
+------------------------------------------------------
+
+#include <stdio.h>
+
+void main()
+{
+        printf("start program\n");
+        FILE* fp;
+        fp = fopen("/sys/class/leds/beaglebone:green:usr2/brightness","w");
+        if(fp == NULL)
+        {
+                printf("File open failed");
+                return;
+        }
+        int a;
+        printf("on/off : 1/0:");
+        scanf("%d",&a);
+        fprintf(fp,"%d",a);
+        fclose(fp);
+}
+--------------------------------------------------------------------------------
+
+We write program and build on host PC, using crosscompiler for ARM
+
+source ../../../ti-processor-sdk-linux-am335x-evm-09.03.05.02/linux-devkit/environment-setup-armv7at2hf-neon-oe-linux-gnueabi 
+
+gcc main.c -o Ledcontrol
+
+scp LED_control root@192.168.8.8:/home/root
+
+./LED_control -> led on/off
+------------------------------------------------------
+
+This is we are using basic application for control
+we have to use linux api (because of many reason)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
