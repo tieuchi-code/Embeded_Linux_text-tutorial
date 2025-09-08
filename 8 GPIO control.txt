@@ -72,15 +72,43 @@ gcc main.c -o Ledcontrol
 scp LED_control root@192.168.8.8:/home/root
 
 ./LED_control -> led on/off
-------------------------------------------------------
+================================================================================================
 
 This is we are using basic application for control
 we have to use linux api (because of many reason)
+Boot BBB on
 
+linux provide User API
+Open ti-sdk
+->boardsuport -> ti-linux-kernel -> include -> upai -> linux
 
+Distinguis (uapi -> linux) and (linux -> uapi)
 
+uapi -> linux: is for user space to build application
+linux -> uapi: driver config
 
+Open ti-sdk
+->boardsuport -> ti-linux-kernel -> include -> upai -> linux -> gpio.h
 
+gpio.h is library for userspace to build application for linux board
+----------------------------------------------
+
+Open BBB
+->gpioinfo
+this command will show gpiochip 
+
+ls /dev/ -> show device manager
+
+gpiochip0        ptycd  ptyr9  ptyw5  rfkill  ttyS3  ttyea  ttyt6  ttyy2
+gpiochip1        ptyce  ptyra  ptyw6  rtc     ttyS4  ttyeb  ttyt7  ttyy3
+gpiochip2        ptycf  ptyrb  ptyw7  rtc0    ttya0  ttyec  ttyt8  ttyy4
+gpiochip3        ptyd0  ptyrc  ptyw8  shm     ttya1  ttyed  ttyt9  ttyy5
+-----------------------------------------------
+
+Open Project led control
+#include <stdio.h>
+#include <linux/gpio.h>		library for linux
+#include <fcntl.h>		library for open function
 
 
 
