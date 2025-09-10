@@ -107,15 +107,183 @@ gpiochip3        ptyd0  ptyrc  ptyw8  shm     ttya1  ttyed  ttyt9  ttyy5
 
 Open Project led control
 #include <stdio.h>
-#include <linux/gpio.h>		library for linux
+#include <linux/gpio.h>		library for linux control gpio
 #include <fcntl.h>		library for open function
+#include <sys/ioctl.h>
+#include <unistd.h>
+--------------------------------------------------------------
 
+int open(const char *pathname, int flags);
+int open(const char *pathname, int flags, mode_t mode); // if create new file
 
+pathname: 
+	"test.txt" -> normal text file.
+	"/dev/gpiochip0" -> GPIO device.
+	"/dev/ttyUSB0" -> UART device.
+flags:
+	O_RDONLY ->read only.
+	O_WRONLY -> write only.
+	O_RDWR -> read and write.
+mode (optional);
+	0644 -> rw-r--r-- 
+	0600 -> rw------- 
+	0666 -> rw-rw-rw-
 
+Ex:         int gpio_fp = open("/dev/gpiochip0", O_RDWR);
 
+FD (file descriptor) is an interger number (ID) that the shell config for each file so we can read/write to the file (similar to pointer)
 
+Default FD when open shell has:
+	0: stdin (standard input) - keyboard
+	1: stdout (standard output) - terminal
+	2: stderr (standard error) - terminal
+	
+When use open() function to open file, FD return can be:
+	interger >= 0: success
+	interger = -1: failed
+	
+------------------------------------------------------------------- 
 
+to print out error log
 
+#include <errno.h>
+
+printf("open failed, errno = %d\n", errno); //errno is interger number
+printf("Error string  = %s\n", strerror(errno)); //string error
+--------------------------------------------------------------------
+
+int chip_fd = open("/dev/gpiochip0", O_RDWR);
+
+struct gpio_v2_line_request req = {
+    .offsets = {28},	//line in gpiochip0 want control (GPIOchip0_line28)
+    .consumer = "LED demo",	//label (gpio user name)
+    .config = { .flags = GPIO_V2_LINE_FLAG_OUTPUT },	//line config (output/input, pull up/pull down...)
+    .num_lines = 1, (number of pin want to use)
+};
+
+.config: flags you want for line
+	@GPIO_V2_LINE_FLAG_INPUT: line is an input
+	@GPIO_V2_LINE_FLAG_OUTPUT: line is an output
+	...
+	find flags info at beginning of linux/gpio.h
+	
+(**create a variable has gpio_v2_line_request struct, line 28 in gpiochip0, name "LED demo", ouput, use 1 line)
+---------------------------------------------------------------------
+
+ioctl: a system call from linux api to send special command to opened file (dev/...)
+
+int ioctl(int fd, unsigned long request, ...);
+
+*always need 3 parameter
+
+fd: FD opened
+request: special command code
+	#define GPIO_V2_GET_LINEINFO_IOCTL _IOWR(0xB4, 0x05, struct gpio_v2_line_info)
+	#define GPIO_V2_GET_LINEINFO_WATCH_IOCTL _IOWR(0xB4, 0x06, struct gpio_v2_line_info)
+	#define GPIO_V2_GET_LINE_IOCTL _IOWR(0xB4, 0x07, struct gpio_v2_line_request)
+	#define GPIO_V2_LINE_SET_CONFIG_IOCTL _IOWR(0xB4, 0x0D, struct gpio_v2_line_config)
+	#define GPIO_V2_LINE_GET_VALUES_IOCTL _IOWR(0xB4, 0x0E, struct gpio_v2_line_values)
+	#define GPIO_V2_LINE_SET_VALUES_IOCTL _IOWR(0xB4, 0x0F, struct gpio_v2_line_values)
+	
+...: additional parameter (pointer to struct include infomation)
+
+return
+	0: success
+	-1: failed
+
+Ex: res = ioctl(gpio_fp, GPIO_V2_GET_LINE_IOCTL, &gpio_line_req);
+
+gpio_fd: FD of dev/gpiochip0
+GPIO_V2_GET_LINE_IOCTL: request for control gpio
+&gpio_line_req: pointerto struct 'gpio_v2_line_request'
+---------------------------------------------------------------------------
+
+/**
+ * struct gpio_v2_line_values - Values of GPIO lines
+ * @bits: a bitmap containing the value of the lines, set to 1 for active
+ * and 0 for inactive.
+ * @mask: a bitmap identifying the lines to get or set, with each bit
+ * number corresponding to the index into &struct
+ * gpio_v2_line_request.offsets.
+ */
+struct gpio_v2_line_values {
+	__aligned_u64 bits;
+	__aligned_u64 mask;
+};
+
+Ex:        struct gpio_v2_line_values line_val =
+        {
+                .bits = 1,
+                .mask = 1
+        };
+
+mask: choose which line of the offset is active
+Ex: mask = 0b001 -> line1
+	= 0b100 -> line2
+	= 0b10 -> line1
+-----------------------------------------------------------------
+
+close: system call from linux API
+
+#include <unistd.h>
+int close(int fd);
+
+fd: file description opened in process -> close
+
+	close(gpio_line_req.fd);
+	close(gpio_fp);
+-----------------------------------------------------------------
+
+#include <stdio.h>
+#include <linux/gpio.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+
+int main()
+{
+        printf("Start Program: Led control\n");
+        int res = 0;
+        int gpio_fp = open("/dev/gpiochip0", O_RDWR);
+        if (gpio_fp == -1)
+        {
+                printf("Open gpiochip0 failed");
+                return -1;
+        }
+        struct gpio_v2_line_request gpio_line_req = 
+        {
+                .offsets = {28},
+                .consumer = "LED demo",
+                .config = {
+                        .flags = GPIO_V2_LINE_FLAG_OUTPUT,
+                        
+                },
+                .num_lines = 1,
+        };
+        res = ioctl(gpio_fp, GPIO_V2_GET_LINE_IOCTL, &gpio_line_req);
+
+        if (res < 0)
+        {
+                printf("GPIO_V2_GET_LINE_IOCTL falied \n");
+                goto X;
+        }
+        struct gpio_v2_line_values line_val =
+        {
+                .bits = 1,
+                .mask = 1
+        };
+        
+        res = ioctl(gpio_line_req.fd, GPIO_V2_LINE_SET_VALUES_IOCTL, &line_val);
+        if(res < 0)
+        {
+                printf("IOCTL GPIO_V2_LINE_SET_VALUES_IOCTL failed \n");   
+                goto Y;    
+        }
+        sleep(30);
+Y:      close(gpio_line_req.fd);
+X:      close(gpio_fp);
+        return res;
+}
 
 
 
