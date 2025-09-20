@@ -1,0 +1,71 @@
+In this instruction, we will learn how to write a simple driver module for BBB -> Hello kernel to print log that kernel is loaded or exited
+Driver will create entry (/dev/gpiochip0, /dev/i2c-1 ....)
+-> application will use driver to control LED
+
+cd tisdk -> board support -> ti-kernel -> drivers
+---------------------------------------------------------------
+To write driver for kernel
+cd ti-sdk -> boardsupport -> ti-kernel -> include -> linux -> init.h
+
+search for "linux/init.h"
+-> the file have funtion use for init
+---------------------------------------------------------------
+
+Create new project "Hello kernel"
+
+create Hello_kernel.c
+
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+
+int __init hello_init(void)
+{
+
+    printk("[HELLO KERNEL DRIVER]: this module is loaded");
+    return 0;
+}
+
+void __exit hello_exit(void)
+{
+    printk("[HELLO KERNEL]:module exited");
+}
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Tieu Chi");
+module_init(hello_init);
+module_exit(hello_exit);
+---------------------------------------------------------------
+
+Makefile
+
+obj-m := Hello_kernel.o 
+KERNELDIR=/home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/board-support/ti-linux-kernel-6.1.119+gitAUTOINC+c490f4c0fe-ti
+CURRENTDIR=$(shell pwd)
+CROSS=/home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/external-toolchain-dir/arm-gnu-toolchain-11.3.rel1-x86_64-arm-none-linux-gnueabihf/bin/arm-none-linux-gnueabihf-
+
+all:
+	$(MAKE) -C $(KERNELDIR) M=$(CURRENTDIR) ARCH=arm CROSS_COMPILE=$(CROSS) modules
+clean:
+	$(MAKE) -C $(KERNELDIR) M=$(CURRENTDIR) ARCH=arm CROSS_COMPILE=$(CROSS) clean
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
