@@ -19,20 +19,20 @@ create Hello_kernel.c
 #include <linux/module.h>
 #include <linux/kernel.h>
 
-int __init hello_init(void)
+static int __init hello_init(void)
 {
-
-    printk("[HELLO KERNEL DRIVER]: this module is loaded");
+    printk("[HELLO KERNEL DRIVER]: module loaded\n");
     return 0;
 }
 
-void __exit hello_exit(void)
+static void __exit hello_exit(void)
 {
-    printk("[HELLO KERNEL]:module exited");
+    printk("[HELLO KERNEL]: module exited\n");
 }
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Tieu Chi");
+MODULE_DESCRIPTION("Hello kernel demo");
 module_init(hello_init);
 module_exit(hello_exit);
 ---------------------------------------------------------------
@@ -121,8 +121,24 @@ ok, now insmod again
 root@am335x-evm:~# insmod hello-kernel.ko                                                                             
 [  127.969741] hello_kernel: loading out-of-tree module taints kernel.                                                
 [  127.976554] [HELLO KERNEL DRIVER]: this module loaded     
+-----------------------------------------------------------------------------
 
+When you copy hello-kernel.ko to BBB, if it appear this error
 
+Add correct host key to home/tieuchi/.shh/known_host
+
+it require a hostkey, you remove the file, it's ok
+
+rm home/tieuchi/.shh/known_host
+--------------------------------------------------------------------------
+===============================================================================================
+
+Now we have to create sys/class/hello-kernel
+
+#include <linux/device.h>
+
+in file device.h has class.h
+class.h provide a struct to create class
 
 
 
