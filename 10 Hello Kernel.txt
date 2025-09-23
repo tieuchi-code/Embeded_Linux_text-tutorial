@@ -48,16 +48,79 @@ all:
 	$(MAKE) -C $(KERNELDIR) M=$(CURRENTDIR) ARCH=arm CROSS_COMPILE=$(CROSS) modules
 clean:
 	$(MAKE) -C $(KERNELDIR) M=$(CURRENTDIR) ARCH=arm CROSS_COMPILE=$(CROSS) clean
-	
+-----------------------------------------------------------------------------------
+OK, now 2 file is done
+to build Hello_kernel.ko
 
+Host:
 
+->make
+->scp Hello_kernel.ko root@192.168.8.8:/home/root
 
+BBB:
 
+insmod Hello_kernel.ko
+dmesg
 
+you will see the log
+[HELLO KERNEL DRIVER]: this module is loaded
+-------------------------------------------------------------
 
+to remove module
+BBB:
 
+rmmod Hello_kernel.ko
+dmesg
 
+you will see
+[HELLO KERNEL]:module exited
+---------------------------------------------------------
 
+Fix magic version error
+
+root@am335x-evm:~# insmod hello-kernel.ko                                                                             
+[   93.497405] hello_kernel: version magic '6.1.119 preempt mod_unload ARMv7 p2v8 ' should be '6.1.119-ti-gc490f4c0fe'
+insmod: ERROR: could not insert module hello-kernel.ko: Invalid module format        
+
+this error happen because you are using a different version of zImage, you have to you zImage you built (zImage), not the one TI-SDK give (zImage-am335x-evm)
+To fix this, you have to build zImage and boot again it to BBB, follow step below
+
+1.Check
+ti-sdk -> boardsupport -> built-image
+if you see zImage -> OK
+(or you can check in root/tftpboot)
+if no zImage
+	-> cd ti-sdk 
+	-> make linux
+	-> make linux_install
+check in built-image again, there is zIamge file
+
+check where is tftp server, often in root directory
+-> cd / -> ls
+tieuchi@tieuchi:/$ ls
+bin   cdrom  etc   lib    lib64   lost+found  mnt  proc  run   snap  sys       tmp  var
+boot  dev    home  lib32  libx32  media       opt  root  sbin  srv   tftpboot  usr
+
+copy zImage to tftpboot
+
+-> cd ti-sdk -> boardsupport -> built-image
+-> cp zImage /tftpboot/
+
+Check again in tftpboot, there is zImage file
+
+Now we have to fix setupBoard.com to boot zImage
+
+->sudo vim setupBoard.minicom
+
+send "setenv bootfile zImage"
+send setenv bootcmd 'run findfdt; run init_console; setenv autoload no;tftp ${loadaddr} zImage; tftp ${fdtaddr} ${fdtfile}; bootz ${loadaddr} - ${fdtaddr}'
+
+OK, now boot image again
+
+ok, now insmod again
+root@am335x-evm:~# insmod hello-kernel.ko                                                                             
+[  127.969741] hello_kernel: loading out-of-tree module taints kernel.                                                
+[  127.976554] [HELLO KERNEL DRIVER]: this module loaded     
 
 
 
