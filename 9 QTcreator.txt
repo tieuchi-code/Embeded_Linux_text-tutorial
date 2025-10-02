@@ -1,0 +1,32 @@
+QTcreator is a framework to make GUI for embeded system, mobile app, desktop app (linux,window,macos)
+In this tutorial, we will make first, simple project for BeagleBone Black, then advance to use GUI to control GPIO
+--------------------------------------------------------------
+First, to install QTcreator (use opensource QT) on Linux host
+
+sudo apt update
+sudo apt install qtcreator -y
+
+Run: open terminal
+
+"qtcreator" or "qtcreator &"
+--------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
