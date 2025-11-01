@@ -1,0 +1,256 @@
+In this instruction, we will learn how to use LCD using IC ST7789, device tree and character device
+----------------------------------------------------------
+Hardware (LCD):
+	IC: ST7789
+SPI:
+	GND: ground
+	VCC: 3V
+	SCL: Clock
+	SDA: Master out slave in (MOSI)
+	DC:  Data/ Command (0= command, 1= data)
+	CS:  Chip select
+	BLK: Backlight (VCC or using PWM to control)
+	
+Hardware (BBB):
+SPI0:
+	A17: SPI0_SCLK
+	A16: SPI0_CS0	
+	
+SCL -> A17 (P9_22)
+SDA -> MOSI-SPI0_D1 (P9_18)
+CS -> P9_17
+DC -> P9_12
+RST -> P9_23
+----------------------------------------------------------------
+
+In linux kernel has a "staging_directory" -> where have some driver for LCD, sensor, servo.... that linux don't want to be include, so he put it in staging
+
+ti-sdk -> board support -> ti-linux-kernel -> driver -> staging
+
+In staging, we have fbtft directory (frame bufer) -> st7789v.c
+------------------------------------------------------------------
+
+cd staging -> Makefile
+find this
+	obj-$(CONFIG_FB_TFT_ST7789V)     += fb_st7789v.o
+to use this LCD
+	enble staging -> config_staging = y
+		enable fbtft -> config fbtft = y
+			enble st7789 = y
+------------------------------------------------------------------
+we can find in make rule of ti-sdk
+
+linux: linux-dtbs
+	@echo =================================
+	@echo     Building the Linux Kernel
+	@echo =================================
+	mkdir -p $(TI_SDK_PATH)/board-support/built-images
+	$(MAKE) -C $(LINUXKERNEL_INSTALL_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) multi_v7_defconfig ti_multi_v7_prune.config no_smp.config $(RT_FRAGMENT)
+	$(MAKE) -j $(MAKE_JOBS) -C $(LINUXKERNEL_INSTALL_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) zImage
+	$(MAKE) -j $(MAKE_JOBS) -C $(LINUXKERNEL_INSTALL_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) modules
+------------------------------------------------------------------------
+
+ti-sdk use file "multi_v7_defconfig" to build linux kernel -> we have to change in this file
+
+find . -iname "multi_v7_defconfig"
+
+-> ./board-support/ti-linux-kernel-6.1.119+gitAUTOINC+c490f4c0fe-ti/arch/arm/configs/multi_v7_defconfig
+
+find 
+	CONFIG_STAGING=y
+So staging is already build in as default
+
+cd staging
+	obj-$(CONFIG_FB_TFT)		+= fbtft/
+
+cd fbtft
+	obj-$(CONFIG_FB_TFT_ST7789V)     += fb_st7789v.o
+---------------------------------------------------------------------
+
+OK, now we go to file deconfig to enable CONFIG_FB_TFT and CONFIG_FB_TFT_ST7789V
+
+-> multi_v7_defconfig
+add to bottom of file
+	CONFIG_FB_TFT=y
+	CONFIG_FB_TFT_ST7789V=y
+	
+-> make linux
+Now, driver has already build in to kernel
+-----------------------------------------------------------------------
+
+Now we read how to use driver in fbtft-core.c fb-st7789v.c fbtft.h
+
+In fb-st7789v.c
+	FBTFT_REGISTER_DRIVER(DRVNAME, "sitronix,st7789v", &display);
+in fbtft.f
+	#define FBTFT_REGISTER_DRIVER(_name, _compatible, _display)                \
+
+We can see "sitronix,st7789v" is compatible
+so we have to cofig this compatible in dts to enable drvier
+------------------------------------------------
+go to dtbs
+
+&spi0 {
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&bbb_spi0_pins>;
+
+    st7789@0 {
+        reg = <0>;
+        compatible = "sitronix,st7789v";
+        width = <240>;
+        height = <240>;
+        buswidth = <8>;
+
+        dc-gpios = <&gpio1 28 GPIO_ACTIVE_HIGH>;
+        reset-gpios = <&gpio1 17 GPIO_ACTIVE_LOW>;
+    };
+};
+
+&i2c2 {
+    temp_hum_sensor@38 {
+        compatible = "aht10";
+        reg = <0x38>;
+    };
+};
+
+***status = "okay"; -> this is compulsory to enable SPI
+---------------------------------------------
+
+Now, we have to config SPI
+We can find in am335x-bone-common.dtsi
+------------------------------------------------
+&am33xx_pinmux {
+	pinctrl-names = "default";
+	pinctrl-0 = <&clkout2_pin>;
+
+	user_leds_s0: user_leds_s0 {
+		pinctrl-single,pins = <
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A5, PIN_OUTPUT_PULLDOWN, MUX_MODE7)	/* gpmc_a5.gpio1_21 */
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A6, PIN_OUTPUT_PULLUP, MUX_MODE7)	/* gpmc_a6.gpio1_22 */
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A7, PIN_OUTPUT_PULLDOWN, MUX_MODE7)	/* gpmc_a7.gpio1_23 */
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A8, PIN_OUTPUT_PULLUP, MUX_MODE7)	/* gpmc_a8.gpio1_24 */
+		>;
+	};
+	
+So we can do the same to dts
+---------------------------------------------
+-> am335x-boneblack.dts
+
+add this code to enable spi0 before you use &spi0 
+&am33xx_pinmux {
+    bbb_spi0_pins: bbb_spi0_pins {
+        pinctrl-single,pins = <
+            /* SPI0: SCLK: P9_22, MISO(SPI0_D0): P9_21, MOSI(SPI0_D1): P9_18, CS0: P9_17 */
+            AM33XX_PADCONF(AM335X_PIN_SPI0_SCLK, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_SPI0_D0, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE0)
+
+            /* DC: P9_12 */
+            AM33XX_PADCONF(AM335X_PIN_GPMC_BEN1, PIN_OUTPUT, MUX_MODE7)
+
+            /* RST: P9_23 */
+            AM33XX_PADCONF(AM335X_PIN_GPMC_A1, PIN_OUTPUT, MUX_MODE7)
+        >;
+    };
+};
+--------------------------------------------
+
+full code you add to dts
+
+&am33xx_pinmux {
+    bbb_spi0_pins: bbb_spi0_pins {
+        pinctrl-single,pins = <
+            /* SPI0: SCLK: P9_22, MISO(SPI0_D0): P9_21, MOSI(SPI0_D1): P9_18, CS0: P9_17 */
+            AM33XX_PADCONF(AM335X_PIN_SPI0_SCLK, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_SPI0_D0, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE0)
+
+            /* DC: P9_12 */
+            AM33XX_PADCONF(AM335X_PIN_GPMC_BEN1, PIN_OUTPUT, MUX_MODE7)
+
+            /* RST: P9_23 */
+            AM33XX_PADCONF(AM335X_PIN_GPMC_A1, PIN_OUTPUT, MUX_MODE7)
+        >;
+    };
+};
+
+&spi0 {
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&bbb_spi0_pins>;
+
+    st7789@0 {
+        reg = <0>;
+        compatible = "sitronix,st7789v";
+        width = <240>;
+        height = <240>;
+        buswidth = <8>;
+
+        dc-gpios = <&gpio1 28 GPIO_ACTIVE_HIGH>;
+        reset-gpios = <&gpio1 17 GPIO_ACTIVE_LOW>;
+    };
+};
+
+&i2c2 {
+    temp_hum_sensor@38 {
+        compatible = "aht10";
+        reg = <0x38>;
+    };
+};
+------------------------------------------------------
+
+Read documantation to now how and where to config pin
+
+AM335x datasheet -> 4. Pin attribute
+
+A18 -> we have pin SPI0_SCLK: 8 alternate function
+---------------------------------------------------
+
+-> am335x-boneblack.dts
+We can see include am33xx.dtsi
+
+-> am33xx.dtsi
+we can see include am33xx.h
+
+-> /home/tieuchi/ti-processor-sdk-linux-am335x-evm-09.03.05.02/board-support/ti-linux-kernel-6.1.119+gitAUTOINC+c490f4c0fe-ti/include/dt-bindings/pinctrl/am33xx.h
+
+We can see config pin
+#define AM335X_PIN_SPI0_SCLK			0x950
+-----------------------------------------------------------------------
+AM335x reference manual
+-> Register (section 9.3) -> SPI0 -> 0x950
+-> PAD control MUXMODE
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
