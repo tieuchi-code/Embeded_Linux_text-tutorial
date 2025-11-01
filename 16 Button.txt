@@ -1,0 +1,23 @@
+/ {
+    model = "TI AM335x BeagleBone Black";
+    compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
+
+    buttons_hello {
+        compatible = "gpio-keys";
+
+        button1 {
+            label = "RESET";
+            linux,code = <KEY_1>;
+            gpios = <&gpio1 14 GPIO_ACTIVE_LOW>; /* P8_16 */
+            debounce-interval = <10>;
+        };
+
+        button2 {
+            label = "RESET";
+            linux,code = <KEY_2>;
+            gpios = <&gpio2 1 GPIO_ACTIVE_LOW>; /* P8_18 */
+            debounce-interval = <10>;
+        };
+    };
+};
+
