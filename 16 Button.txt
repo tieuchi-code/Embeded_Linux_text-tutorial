@@ -21,3 +21,5 @@
     };
 };
 
+***Compatible must be "gpio-keys" because we use driver -> intput -> keypad -> gpio_keys.c
+
